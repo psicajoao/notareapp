@@ -216,7 +216,7 @@ body.rec-on #in-rec{background:#111}
   <button class="tb" id="rec" title="Gravar tocando no teclado, com 1 compasso de contagem (⌥R)">● Gravar <kbd>⌥R</kbd></button>
   <button class="tb" id="stop" title="Parar (Esc)">■</button>
   <button class="tb" id="loop" title="Repetir em loop o trecho selecionado">↻ Loop</button>
-  <span class="tb" style="gap:8px;border:0">Vel. <input id="speed" type="range" min="40" max="150" value="100" style="width:90px"><span id="speedval" style="min-width:36px">100%</span></span>
+  <span class="tb" id="tempobox" style="gap:6px;border:0;padding:0" title="Tempo de reprodução e do metrônomo (♩ = batidas por minuto). Digite o valor exato ou arraste.">Tempo ♩= <button class="tb" id="tempo-dn" style="padding:2px 9px">−</button><input id="tempo" type="number" min="20" max="300" step="1" inputmode="numeric" style="width:62px;padding:3px 4px;border-radius:6px;border:1px solid #ffffff55;background:#ffffff18;color:inherit;font:inherit;text-align:center"><button class="tb" id="tempo-up" style="padding:2px 9px">+</button><input id="tempo-r" type="range" min="30" max="240" value="100" style="width:90px"><button class="tb" id="tempo-0" style="padding:2px 9px" title="Voltar ao tempo da música">↺</button></span>
   <span class="sp"></span>
   <button class="tb" id="undo" title="Desfazer (⌘Z)">↶</button><button class="tb" id="redo" title="Refazer (⇧⌘Z)">↷</button>
   <button class="tb" id="zout">−</button><span id="zoomval" style="min-width:40px;text-align:center">100%</span><button class="tb" id="zin">+</button>
@@ -228,8 +228,8 @@ body.rec-on #in-rec{background:#111}
 <div id="sheet"><div class="bg" data-close="1"></div><div class="pn">
 <div class="gr"></div>
 <h4>Arquivo</h4><div class="grid"><button data-go="#new">＋ Nova partitura</button><button data-go="#open">Abrir</button><button data-go="#save">Salvar</button><button data-go="#export">Exportar</button></div>
-<h4>Reprodução</h4><div class="grid"><button data-go="#loop" data-stay="1" id="s-loop">↻ Repetir trecho</button><button data-go="#metro" data-stay="1" id="s-metro">♩ Metrônomo</button>
-<label class="full">Velocidade <input type="range" id="s-speed" min="40" max="150" value="100"><b id="s-speedv" style="min-width:42px;text-align:right">100%</b></label></div>
+<h4>Reprodução e tempo</h4><div class="grid"><button data-go="#loop" data-stay="1" id="s-loop">↻ Repetir trecho</button><button data-go="#metro" data-stay="1" id="s-metro">♩ Metrônomo</button>
+<label class="full" style="flex-wrap:wrap">Tempo ♩ = <input type="number" id="s-tempo" min="20" max="300" step="1" inputmode="numeric" style="width:84px;font:inherit;font-size:18px;padding:6px;border:1px solid var(--line);border-radius:8px;text-align:center"><button type="button" id="s-tempo-dn" style="padding:8px 14px">−</button><button type="button" id="s-tempo-up" style="padding:8px 14px">+</button><button type="button" id="s-tempo0" style="padding:8px 12px;margin-left:auto">↺ da música</button><input type="range" id="s-tempo-r" min="30" max="240" value="100" style="flex-basis:100%"></label></div>
 <h4>Gravação</h4><div class="grid"><label class="full">Menor nota <select id="s-quant"><option value="240">semínima</option><option value="120">colcheia</option><option value="60">semicolcheia</option><option value="30">fusa</option></select></label>
 <label class="full"><input type="checkbox" id="s-click" checked> Clique de metrônomo ao gravar</label></div>
 <h4>Ver</h4><div class="grid"><button data-go="#zout" data-stay="1">Zoom −</button><button data-go="#zin" data-stay="1">Zoom +</button><button data-go="#palbtn">Paleta de edição</button><button data-go="#panelbtn">Painel</button></div>
