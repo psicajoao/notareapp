@@ -220,7 +220,7 @@ header{padding-top:calc(env(safe-area-inset-top,0px) + 6px)!important;padding-le
 <header>
   <button class="tb" id="new" title="Nova partitura (⌥N)">Nova <kbd>⌥N</kbd></button>
   <button class="tb" id="home" title="Minhas músicas (salvas automaticamente neste aparelho)">Músicas</button><button class="tb" id="open" title="Abrir (⌘O)">Abrir <kbd>⌘O</kbd></button>
-  <button class="tb" id="save" title="Salvar (⌘S)">Salvar <kbd>⌘S</kbd></button>
+  <button class="tb" id="save" title="Salvar como… — você escolhe onde (⌘S)">Salvar <kbd>⌘S</kbd></button>
   <button class="tb" id="export" title="Exportar (⌘E)">Exportar <kbd>⌘E</kbd></button>
   <span style="width:8px"></span>
   <button class="tb" id="play" title="Tocar / pausar (Espaço)"><span class="ico">▶</span><span class="lbl">Tocar</span> <kbd>Espaço</kbd></button>
@@ -240,7 +240,7 @@ header{padding-top:calc(env(safe-area-inset-top,0px) + 6px)!important;padding-le
 </header>
 <div id="sheet"><div class="bg" data-close="1"></div><div class="pn">
 <div class="gr"></div>
-<h4>Arquivo</h4><div class="grid"><button data-go="#new">＋ Nova partitura</button><button data-go="#home" class="full">📚 Minhas músicas (salvas no app)</button><button data-go="#open">Abrir arquivo</button><button data-go="#save">Salvar</button><button data-go="#export">Exportar</button></div>
+<h4>Arquivo</h4><div class="grid"><button data-go="#new">＋ Nova partitura</button><button data-go="#home" class="full">📚 Minhas músicas (salvas no app)</button><button data-go="#open">Abrir arquivo</button><button data-go="#save">Salvar como… (escolher o local)</button><button data-go="#export">Exportar</button></div>
 <h4>Reprodução e tempo</h4><div class="grid"><button data-go="#loop" data-stay="1" id="s-loop">↻ Repetir trecho</button><button data-go="#metro" data-stay="1" id="s-metro">♩ Metrônomo</button>
 <label class="full" style="flex-wrap:wrap">Tempo ♩ = <input type="number" id="s-tempo" min="20" max="300" step="1" inputmode="numeric" style="width:84px;font:inherit;font-size:18px;padding:6px;border:1px solid var(--line);border-radius:8px;text-align:center"><button type="button" id="s-tempo-dn" style="padding:8px 14px">−</button><button type="button" id="s-tempo-up" style="padding:8px 14px">+</button><button type="button" id="s-tempo0" style="padding:8px 12px;margin-left:auto">↺ da música</button><input type="range" id="s-tempo-r" min="30" max="240" value="100" style="flex-basis:100%"></label></div>
 <h4>Gravação</h4><div class="grid"><label class="full">Menor nota <select id="s-quant"><option value="240">semínima</option><option value="120">colcheia</option><option value="60">semicolcheia</option><option value="30">fusa</option></select></label>
