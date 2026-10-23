@@ -107,6 +107,10 @@ header #play .lbl{display:inline}header #stop{padding:6px 11px!important}
 body.has-song #welcome{display:none}
 body:not(.has-song) #score,body:not(.has-song) aside,body:not(.has-song) #status{display:none}
 #splash{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(120% 90% at 30% 20%,#4f46e5 0,#1d4ed8 45%,#0369a1 100%);color:#fff;transition:opacity .55s ease;cursor:pointer;overflow:hidden}
+#splash.wait *{animation-play-state:paused!important}
+#splash .pulse{position:absolute;bottom:max(40px,env(safe-area-inset-bottom));width:14px;height:14px;border-radius:50%;background:#fff;opacity:.0;display:none}
+#splash.wait .pulse{display:block;animation:pul 1.6s ease-in-out infinite!important;animation-play-state:running!important}
+@keyframes pul{0%,100%{opacity:.15;transform:scale(.8)}50%{opacity:.7;transform:scale(1.2)}}
 #splash.out{opacity:0;pointer-events:none}
 #splash svg{width:min(62vw,340px);height:auto;overflow:visible;filter:drop-shadow(0 12px 26px #0b1b4d66)}
 #splash .wm{font:700 clamp(40px,11vw,68px)/1 Georgia,"Times New Roman",serif;letter-spacing:1px;margin-top:22px;display:flex}
@@ -401,7 +405,7 @@ body.rec-on #in-rec{background:#111}
     <div id="kbwrap"><div id="kb"></div></div>
   </div>
 </div>
-<div id="splash" aria-label="Notare"><svg viewBox="40 90 432 330" xmlns="http://www.w3.org/2000/svg">
+<div id="splash" class="wait" aria-label="Notare"><i class="pulse"></i><svg viewBox="40 90 432 330" xmlns="http://www.w3.org/2000/svg">
 <defs><clipPath id="sp-cp"><rect class="wipe" x="150" y="100" width="220" height="290"/></clipPath><linearGradient id="sp-sh"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
 <g stroke="#fff" stroke-opacity=".5" stroke-width="7" stroke-linecap="round">
 <line class="ln" style="animation-delay:0s" x1="64" y1="196" x2="448" y2="196"/><line class="ln" style="animation-delay:.1s" x1="64" y1="238" x2="448" y2="238"/><line class="ln" style="animation-delay:.2s" x1="64" y1="280" x2="448" y2="280"/><line class="ln" style="animation-delay:.3s" x1="64" y1="322" x2="448" y2="322"/><line class="ln" style="animation-delay:.4s" x1="64" y1="364" x2="448" y2="364"/></g>
