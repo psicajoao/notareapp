@@ -163,7 +163,7 @@ dialog h2{margin:0 0 10px}
 @media (max-width:800px){aside{position:absolute;right:0;top:0;bottom:0;z-index:5;box-shadow:-4px 0 20px #0003;width:min(88vw,320px)}#aclose{display:block}.tb kbd{display:none}.tb{padding:6px 9px}#scroll{padding:6px}}
 
 #pianodock{background:#fff;border-top:1px solid var(--line);flex:none;padding:4px 8px 8px;max-width:100vw;overflow:hidden}
-body:not(.has-song) #pianodock,body.nopiano #pianodock,body:not(.has-song) #pianochip,body:not(.nopiano) #pianochip{display:none}
+body:not(.has-song) #mbar{display:none!important}body:not(.has-song) #pianodock,body.nopiano #pianodock,body.palhide #palette{display:none}
 #pdhead{display:flex;gap:8px;align-items:center;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;white-space:nowrap}#pdhead::-webkit-scrollbar{display:none}#pdhead>*{flex:none}#pdhead .sp{flex:1}
 #pdopts{display:none;margin-top:6px}#pianodock.opts #pdopts{display:flex}
 #pianochip{position:fixed;right:12px;bottom:max(14px,env(safe-area-inset-bottom));z-index:60;border:0;border-radius:22px;padding:10px 16px;font:600 15px system-ui;color:#fff;background:linear-gradient(135deg,#4f46e5,#0369a1);box-shadow:0 6px 18px #0b1b4d66}
@@ -216,7 +216,7 @@ body.rec-on #in-rec{background:#111}
 <body class="nopanel-off">
 <header>
   <button class="tb" id="new" title="Nova partitura (⌥N)">Nova <kbd>⌥N</kbd></button>
-  <button class="tb" id="open" title="Abrir (⌘O)">Abrir <kbd>⌘O</kbd></button>
+  <button class="tb" id="home" title="Minhas músicas (salvas automaticamente neste aparelho)">Músicas</button><button class="tb" id="open" title="Abrir (⌘O)">Abrir <kbd>⌘O</kbd></button>
   <button class="tb" id="save" title="Salvar (⌘S)">Salvar <kbd>⌘S</kbd></button>
   <button class="tb" id="export" title="Exportar (⌘E)">Exportar <kbd>⌘E</kbd></button>
   <span style="width:8px"></span>
@@ -237,7 +237,7 @@ body.rec-on #in-rec{background:#111}
 </header>
 <div id="sheet"><div class="bg" data-close="1"></div><div class="pn">
 <div class="gr"></div>
-<h4>Arquivo</h4><div class="grid"><button data-go="#new">＋ Nova partitura</button><button data-go="#open">Abrir</button><button data-go="#save">Salvar</button><button data-go="#export">Exportar</button></div>
+<h4>Arquivo</h4><div class="grid"><button data-go="#new">＋ Nova partitura</button><button data-go="#home" class="full">📚 Minhas músicas (salvas no app)</button><button data-go="#open">Abrir arquivo</button><button data-go="#save">Salvar</button><button data-go="#export">Exportar</button></div>
 <h4>Reprodução e tempo</h4><div class="grid"><button data-go="#loop" data-stay="1" id="s-loop">↻ Repetir trecho</button><button data-go="#metro" data-stay="1" id="s-metro">♩ Metrônomo</button>
 <label class="full" style="flex-wrap:wrap">Tempo ♩ = <input type="number" id="s-tempo" min="20" max="300" step="1" inputmode="numeric" style="width:84px;font:inherit;font-size:18px;padding:6px;border:1px solid var(--line);border-radius:8px;text-align:center"><button type="button" id="s-tempo-dn" style="padding:8px 14px">−</button><button type="button" id="s-tempo-up" style="padding:8px 14px">+</button><button type="button" id="s-tempo0" style="padding:8px 12px;margin-left:auto">↺ da música</button><input type="range" id="s-tempo-r" min="30" max="240" value="100" style="flex-basis:100%"></label></div>
 <h4>Gravação</h4><div class="grid"><label class="full">Menor nota <select id="s-quant"><option value="240">semínima</option><option value="120">colcheia</option><option value="60">semicolcheia</option><option value="30">fusa</option></select></label>
@@ -269,7 +269,7 @@ body.rec-on #in-rec{background:#111}
 </g>
 </svg>
 <h1>Notare</h1><div class="tag">Abra, ouça, grave e edite suas partituras</div></div>
-      <button class="big" id="welcome-open">Abrir arquivo .enc</button> <button class="big" id="welcome-new" style="background:#fff;color:var(--acc)">Nova partitura</button>
+      <button class="big" id="welcome-back" style="display:none;background:#fff;color:var(--acc)">Voltar à partitura</button> <button class="big" id="welcome-open">Abrir arquivo .enc</button> <button class="big" id="welcome-new" style="background:#fff;color:var(--acc)">Nova partitura</button>
       <p>ou arraste o arquivo para esta janela</p>
       <div id="library"></div>
     </div>
@@ -414,7 +414,6 @@ body.rec-on #in-rec{background:#111}
   <div id="kbmap" title="Arraste para escolher a região do teclado"><div id="kbthumb"></div></div>
   <div id="kbwrap"><div id="kb"></div></div>
 </div>
-<button id="pianochip" title="Mostrar o piano (⌘K)">🎹 Piano</button>
 <div id="splash" class="wait" aria-label="Notare"><i class="pulse"></i><svg viewBox="40 90 432 330" xmlns="http://www.w3.org/2000/svg">
 <defs><clipPath id="sp-cp"><rect class="wipe" x="150" y="100" width="220" height="290"/></clipPath><linearGradient id="sp-sh"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
 <g stroke="#fff" stroke-opacity=".5" stroke-width="7" stroke-linecap="round">
