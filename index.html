@@ -168,6 +168,18 @@ body:not(.has-song) #mbar{display:none!important}body:not(.has-song) #pianodock,
 #pdopts{display:none;margin-top:6px}#pianodock.opts #pdopts{display:flex}
 #pianochip{position:fixed;right:12px;bottom:max(14px,env(safe-area-inset-bottom));z-index:60;border:0;border-radius:22px;padding:10px 16px;font:600 15px system-ui;color:#fff;background:linear-gradient(135deg,#4f46e5,#0369a1);box-shadow:0 6px 18px #0b1b4d66}
 @media (max-width:800px), (pointer:coarse) and (max-height:600px){#kb{height:104px}#kb .wk{height:100px}#kb .bk{height:62px}#kbmap{height:20px}}
+#rail{display:none;flex:none;width:104px;background:#e3e6ea;border-right:1px solid #aeb4bd;flex-direction:column;gap:6px;padding:6px;overflow:hidden}
+body.has-song:not(.norail) #rail{display:flex}
+@media (max-width:800px), (pointer:coarse) and (max-height:600px){#rail{display:none!important}}
+.rbar{flex:1 1 0;min-height:0;display:flex;flex-direction:column;background:#f4f5f7;border:1px solid #8b929c;border-radius:6px;overflow:hidden;box-shadow:0 1px 3px #0002}
+.rh{white-space:nowrap;background:linear-gradient(#3b5bdb,#1e3a8a);color:#fff;font:700 11px system-ui;text-align:center;padding:5px 2px;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.rh span{opacity:.7;font-weight:400}
+.rgrid{display:grid;grid-template-columns:1fr 1fr;gap:3px;padding:3px;overflow-y:auto;align-content:start;flex:1}
+#rail .pb{width:100%!important;height:auto;aspect-ratio:1;border-radius:4px;border-color:#7b838f;background:#fff;padding:1px;position:relative;min-width:0}
+#rail .pb i.g{font-size:20px;line-height:22px;height:22px}#rail .pb b{font-size:15px;line-height:20px;height:20px}#rail .pb small{font-size:8px;line-height:9px;white-space:nowrap;overflow:hidden;max-width:100%}
+#rail .pb[data-fly]::after{content:"◢";position:absolute;right:2px;bottom:0;font-size:7px;color:#5b6472}
+#rfly{position:fixed;z-index:80;background:#fff;border:1px solid #8b929c;border-radius:8px;box-shadow:0 8px 24px #0004;padding:4px;display:grid;gap:3px;max-height:70vh;overflow:auto}
+#rfly .btn{text-align:left;padding:6px 12px}
 #palette{background:#fff;border-top:1px solid var(--line);flex:none}
 body:not(.has-song) #palette{display:none}
 #palette.min .ptab{display:none}
@@ -214,6 +226,7 @@ body.rec-on #in-rec{background:#111}
 header{padding-top:calc(env(safe-area-inset-top,0px) + 6px)!important;padding-left:max(10px,env(safe-area-inset-left))!important;padding-right:max(10px,env(safe-area-inset-right))!important}
 #status{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 4px)}
 #splash{padding-top:env(safe-area-inset-top)}
+@media (min-width:801px) and (not ((pointer:coarse) and (max-height:600px))){#palette{display:none!important}}
 </style>
 </head>
 <body class="nopanel-off">
@@ -233,7 +246,7 @@ header{padding-top:calc(env(safe-area-inset-top,0px) + 6px)!important;padding-le
   <span class="sp"></span>
   <button class="tb" id="undo" title="Desfazer (⌘Z)">↶</button><button class="tb" id="redo" title="Refazer (⇧⌘Z)">↷</button>
   <button class="tb" id="zout">−</button><span id="zoomval" style="min-width:40px;text-align:center">100%</span><button class="tb" id="zin">+</button>
-  <button class="tb" id="palbtn" title="Paleta de edição (⌘J)">Paleta</button><button class="tb" id="pianobtn" title="Mostrar/ocultar o piano (⌘K)">🎹 Piano</button>
+  <button class="tb" id="palbtn" title="Mostrar/ocultar as barras de ferramentas (⌘J)">Barras</button><button class="tb" id="pianobtn" title="Mostrar/ocultar o piano (⌘K)">🎹 Piano</button>
   <button class="tb" id="panelbtn" title="Painel (⌘I)">Painel</button>
   <button class="tb" id="helpbtn" title="Atalhos (?)">?</button>
   <button class="tb" id="morebtn" title="Mais opções" aria-label="Mais opções">⋯</button>
@@ -251,6 +264,7 @@ header{padding-top:calc(env(safe-area-inset-top,0px) + 6px)!important;padding-le
 </div></div>
 
 <main>
+  <nav id="rail" aria-label="Barras de ferramentas"></nav>
   <div id="scroll">
     <div id="welcome">
       <div class="hero"><svg class="nlogo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Notare">
