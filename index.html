@@ -162,6 +162,12 @@ dialog h2{margin:0 0 10px}
 #aclose{display:none;float:right;border:1px solid var(--line);background:#f7f8fa;border-radius:8px;padding:6px 12px}
 @media (max-width:800px){aside{position:absolute;right:0;top:0;bottom:0;z-index:5;box-shadow:-4px 0 20px #0003;width:min(88vw,320px)}#aclose{display:block}.tb kbd{display:none}.tb{padding:6px 9px}#scroll{padding:6px}}
 
+#pianodock{background:#fff;border-top:1px solid var(--line);flex:none;padding:4px 8px 8px;max-width:100vw;overflow:hidden}
+body:not(.has-song) #pianodock,body.nopiano #pianodock,body:not(.has-song) #pianochip,body:not(.nopiano) #pianochip{display:none}
+#pdhead{display:flex;gap:8px;align-items:center;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;white-space:nowrap}#pdhead::-webkit-scrollbar{display:none}#pdhead>*{flex:none}#pdhead .sp{flex:1}
+#pdopts{display:none;margin-top:6px}#pianodock.opts #pdopts{display:flex}
+#pianochip{position:fixed;right:12px;bottom:max(14px,env(safe-area-inset-bottom));z-index:60;border:0;border-radius:22px;padding:10px 16px;font:600 15px system-ui;color:#fff;background:linear-gradient(135deg,#4f46e5,#0369a1);box-shadow:0 6px 18px #0b1b4d66}
+@media (max-width:800px){#kb{height:104px}#kb .wk{height:100px}#kb .bk{height:62px}#kbmap{height:20px}}
 #palette{background:#fff;border-top:1px solid var(--line);flex:none}
 body:not(.has-song) #palette{display:none}
 #palette.min .ptab{display:none}
@@ -224,7 +230,7 @@ body.rec-on #in-rec{background:#111}
   <span class="sp"></span>
   <button class="tb" id="undo" title="Desfazer (⌘Z)">↶</button><button class="tb" id="redo" title="Refazer (⇧⌘Z)">↷</button>
   <button class="tb" id="zout">−</button><span id="zoomval" style="min-width:40px;text-align:center">100%</span><button class="tb" id="zin">+</button>
-  <button class="tb" id="palbtn" title="Paleta de edição (⌘J)">Paleta</button>
+  <button class="tb" id="palbtn" title="Paleta de edição (⌘J)">Paleta</button><button class="tb" id="pianobtn" title="Mostrar/ocultar o piano (⌘K)">🎹 Piano</button>
   <button class="tb" id="panelbtn" title="Painel (⌘I)">Painel</button>
   <button class="tb" id="helpbtn" title="Atalhos (?)">?</button>
   <button class="tb" id="morebtn" title="Mais opções" aria-label="Mais opções">⋯</button>
@@ -236,7 +242,7 @@ body.rec-on #in-rec{background:#111}
 <label class="full" style="flex-wrap:wrap">Tempo ♩ = <input type="number" id="s-tempo" min="20" max="300" step="1" inputmode="numeric" style="width:84px;font:inherit;font-size:18px;padding:6px;border:1px solid var(--line);border-radius:8px;text-align:center"><button type="button" id="s-tempo-dn" style="padding:8px 14px">−</button><button type="button" id="s-tempo-up" style="padding:8px 14px">+</button><button type="button" id="s-tempo0" style="padding:8px 12px;margin-left:auto">↺ da música</button><input type="range" id="s-tempo-r" min="30" max="240" value="100" style="flex-basis:100%"></label></div>
 <h4>Gravação</h4><div class="grid"><label class="full">Menor nota <select id="s-quant"><option value="240">semínima</option><option value="120">colcheia</option><option value="60">semicolcheia</option><option value="30">fusa</option></select></label>
 <label class="full"><input type="checkbox" id="s-click" checked> Clique de metrônomo ao gravar</label></div>
-<h4>Ver</h4><div class="grid"><button data-go="#zout" data-stay="1">Zoom −</button><button data-go="#zin" data-stay="1">Zoom +</button><button data-go="#palbtn">Paleta de edição</button><button data-go="#panelbtn">Painel</button></div>
+<h4>Ver</h4><div class="grid"><button data-go="#zout" data-stay="1">Zoom −</button><button data-go="#zin" data-stay="1">Zoom +</button><button data-go="#pianobtn">🎹 Piano</button><button data-go="#palbtn">Paleta de edição</button><button data-go="#panelbtn">Painel</button></div>
 <h4>Ajuda</h4><div class="grid"><button data-go="#helpbtn" class="full">Atalhos e dicas</button></div>
 </div></div>
 
@@ -298,7 +304,7 @@ body.rec-on #in-rec{background:#111}
 </main>
 <div id="palette">
   <div id="ptabs">
-    <button data-tab="notas" class="on">Notas</button><button data-tab="pausas">Pausas</button><button data-tab="dinamica">Dinâmica</button><button data-tab="sinais">Sinais</button><button data-tab="teclado">Teclado</button>
+    <button data-tab="notas" class="on">Notas</button><button data-tab="pausas">Pausas</button><button data-tab="dinamica">Dinâmica</button><button data-tab="sinais">Sinais</button>
     <span class="sp"></span><button id="pclose" title="Recolher paleta (⌘J)">▾</button>
   </div>
   <div class="ptab on" data-p="notas">
@@ -392,19 +398,23 @@ body.rec-on #in-rec{background:#111}
     </div>
     <span class="hint" id="signhint">Vale para o compasso selecionado.</span>
   </div>
-  <div class="ptab" data-p="teclado">
-    <div class="kbtop">
-      <button class="btn" id="midi-on">Ativar teclado MIDI</button><span id="midi-st" class="hint">Sem teclado MIDI. Use o teclado na tela.</span>
-      <label class="inl">Modo <select id="in-mode"><option value="step">Passo a passo</option><option value="rec">Gravar em tempo real</option></select></label>
-      <label class="inl" id="l-quant">Quantizar <select id="in-quant"><option value="240">semínima</option><option value="120">colcheia</option><option value="60" selected>semicolcheia</option><option value="30">fusa</option></select></label>
-      <label class="inl" id="l-metro"><input type="checkbox" id="in-metro" checked> Clique ao gravar</label>
-      <span class="inl"><button class="btn" id="oct-dn" title="Oitava abaixo">◂</button><b id="oct-lbl" style="min-width:74px;text-align:center;color:var(--ink,#111)">Oitava</b><button class="btn" id="oct-up" title="Oitava acima">▸</button></span>
-      <button class="btn rec" id="in-rec">● Gravar</button>
-    </div>
-    <div id="kbmap" title="Arraste para escolher a região do teclado"><div id="kbthumb"></div></div>
-    <div id="kbwrap"><div id="kb"></div></div>
-  </div>
 </div>
+<div id="pianodock">
+  <div id="pdhead"><b>🎹 Piano</b>
+    <span class="inl"><button class="btn" id="oct-dn" title="Oitava abaixo">◂</button><b id="oct-lbl" style="min-width:74px;text-align:center">Oitava</b><button class="btn" id="oct-up" title="Oitava acima">▸</button></span>
+    <button class="btn rec" id="in-rec">● Gravar</button>
+    <span class="sp"></span><button class="btn" id="pdopt" title="Mais opções do teclado">Opções</button><button class="btn" id="pdclose" title="Ocultar o piano (⌘K)">Ocultar ▾</button>
+  </div>
+  <div id="pdopts" class="kbtop">
+    <button class="btn" id="midi-on">Ativar teclado MIDI</button><span id="midi-st" class="hint">Sem teclado MIDI. Use o teclado na tela.</span>
+    <label class="inl">Modo <select id="in-mode"><option value="step">Passo a passo</option><option value="rec">Gravar em tempo real</option></select></label>
+    <label class="inl" id="l-quant">Quantizar <select id="in-quant"><option value="240">semínima</option><option value="120">colcheia</option><option value="60" selected>semicolcheia</option><option value="30">fusa</option></select></label>
+    <label class="inl" id="l-metro"><input type="checkbox" id="in-metro" checked> Clique ao gravar</label>
+  </div>
+  <div id="kbmap" title="Arraste para escolher a região do teclado"><div id="kbthumb"></div></div>
+  <div id="kbwrap"><div id="kb"></div></div>
+</div>
+<button id="pianochip" title="Mostrar o piano (⌘K)">🎹 Piano</button>
 <div id="splash" class="wait" aria-label="Notare"><i class="pulse"></i><svg viewBox="40 90 432 330" xmlns="http://www.w3.org/2000/svg">
 <defs><clipPath id="sp-cp"><rect class="wipe" x="150" y="100" width="220" height="290"/></clipPath><linearGradient id="sp-sh"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
 <g stroke="#fff" stroke-opacity=".5" stroke-width="7" stroke-linecap="round">
