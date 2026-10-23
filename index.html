@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1d4ed8">
+<title>Notare</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Notare">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+@font-face { font-family: 'Bravura'; src: url('Bravura.woff2') format('woff2'); font-display: block; }
+:root{--bg:#eef0f3;--paper:#fff;--ink:#111;--bar:#1f2937;--barink:#f3f4f6;--acc:#2563eb;--muted:#6b7280;--line:#d7dbe0;--pl:#e11d48}
+@media (prefers-color-scheme: dark){:root{--bg:#14171c}}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:14px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;display:flex;flex-direction:column;overflow:hidden}
+header{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--bar);color:var(--barink);flex-wrap:wrap}
+header .sp{flex:1}
+button{font:inherit;cursor:pointer}
+.tb{background:transparent;color:inherit;border:1px solid #ffffff33;border-radius:8px;padding:6px 10px;display:inline-flex;gap:6px;align-items:center}
+.tb:hover{background:#ffffff1f}.tb:disabled{opacity:.4}
+.tb kbd{opacity:.6;font:11px ui-monospace,Menlo,monospace}
+#play{background:var(--acc);border-color:var(--acc);font-weight:600;min-width:112px;justify-content:center}
+#loop.on{background:#fff;color:#1f2937}
+#play.on{background:#b91c1c;border-color:#b91c1c}
+main{flex:1;display:flex;min-height:0}
+#scroll{flex:1;overflow:auto;padding:12px;position:relative}
+#score{background:var(--paper);margin:0 auto;width:max-content;max-width:100%;box-shadow:0 1px 8px #0003;border-radius:2px}
+#svg{display:block;color:#111}
+aside{width:300px;background:#fff;border-left:1px solid var(--line);overflow:auto;padding:12px 14px}
+body.nopanel aside{display:none}
+aside h3{margin:16px 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+aside h3:first-child{margin-top:0}
+aside label{display:block;font-size:12px;color:var(--muted);margin:6px 0 2px}
+aside input[type=text],aside input[type=number],aside select{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font:inherit;background:#fff}
+.row{display:flex;gap:6px;align-items:center}.row>*{flex:1}
+.btn{border:1px solid var(--line);background:#f7f8fa;border-radius:6px;padding:6px 8px}
+.btn:hover{background:#eceff3}
+.part{border:1px solid var(--line);border-radius:8px;padding:8px;margin-bottom:8px}
+.pname{font-weight:600;margin-bottom:4px}.prow{display:flex;gap:6px;align-items:center;margin-top:6px}.prow label{flex:1;margin:0;display:flex;gap:6px;align-items:center}
+.prow input[type=range]{flex:1}
+.mini{width:26px;height:26px;border:1px solid var(--line);background:#f7f8fa;border-radius:6px;padding:0}.mini.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+#status{padding:6px 12px;background:#fff;border-top:1px solid var(--line);color:#374151;font-size:13px;display:flex;gap:12px}
+#status small{color:var(--muted)}
+/* partitura */
+.glyph{font-family:Bravura;fill:currentColor}
+.staff,.bar,.stem,.volta,.tupl{stroke:currentColor}
+.barfill,.fill,.beam,.tie{fill:currentColor}
+.chord{font-family:system-ui,Helvetica,Arial,sans-serif;font-weight:700;fill:#1b3a8a;cursor:pointer}
+.stext,.tempo,.jump,.voltatx{font-family:Georgia,serif;font-style:italic}
+.mnum{font-family:system-ui;fill:#777}
+.t-title{font-family:Georgia,serif;font-weight:700}.t-sub{font-family:Georgia,serif;font-style:italic}
+.tuplnum{font-family:Georgia,serif;font-style:italic}
+.hit,.mhit{fill:transparent;stroke:none!important;cursor:pointer}
+.mhit:hover{fill:#2563eb0d}
+.it:hover .hit{fill:#2563eb14}
+.it.sel *,.it.sel{color:var(--acc);fill:var(--acc);stroke:var(--acc)}
+.it.sel .hit{fill:#2563eb22}
+.it .seln{fill:#f59e0b}
+.it.pl *{fill:var(--pl);stroke:var(--pl)} .it.pl .hit{fill:transparent}
+#countin{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);font:700 120px system-ui;color:#fff;background:#111c;border-radius:30px;padding:10px 50px;display:none;z-index:60;pointer-events:none}#countin.on{display:block}
+#metro.on{background:#fff;color:#1f2937}#rec.on{background:#dc2626;color:#fff}
+#morebtn{display:none}#sheet{display:none}
+@media (max-width:800px){
+header{flex-wrap:nowrap!important;gap:6px!important;padding:6px 10px!important;justify-content:space-between}
+header .tb,header>span{display:none!important}
+header #play,header #stop,header #rec,header #undo,header #redo,header #morebtn{display:inline-flex!important}
+header .sp{display:none!important}
+header #play .lbl{display:inline}header #stop{padding:6px 11px!important}
+#morebtn{font-size:20px!important;line-height:1;padding:3px 11px!important}
+#sheet.on{display:block}
+#sheet .bg{position:fixed;inset:0;background:#0006;z-index:90}
+#sheet .pn{position:fixed;left:0;right:0;bottom:0;z-index:91;background:#fff;border-radius:18px 18px 0 0;padding:8px 14px max(16px,env(safe-area-inset-bottom)) 14px;max-height:78vh;overflow-y:auto;box-shadow:0 -8px 30px #0004;animation:shup .22s ease}
+@keyframes shup{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+#sheet .gr{width:44px;height:5px;border-radius:3px;background:#d1d5db;margin:4px auto 10px}
+#sheet h4{margin:14px 0 6px;font-size:12px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
+#sheet .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}#sheet .pn{overflow-x:hidden}#sheet .grid>*{min-width:0}
+#sheet .grid button,#sheet .grid label{padding:12px;border:1px solid var(--line);border-radius:12px;background:#f7f8fa;font:inherit;font-size:15px;text-align:left;display:flex;align-items:center;gap:8px;color:var(--ink)}
+#sheet .grid .on{background:var(--acc);color:#fff;border-color:var(--acc)}
+#sheet .grid .full{grid-column:1/3}
+#sheet select{font:inherit;font-size:15px;padding:6px;border-radius:8px;flex:1;min-width:0}
+#sheet input[type=range]{flex:1}
+}
+@media (max-width:800px){.tb kbd{display:none}.tb{padding:6px 9px!important;font-size:13px!important}#speed{width:60px!important}#zoomval{display:none}#countin{font-size:80px}}
+#mbar{display:none;gap:6px;align-items:center;overflow-x:auto;white-space:nowrap;padding:6px 10px;background:#eef2ff;border-top:1px solid var(--line);flex:none;-webkit-overflow-scrolling:touch}
+#mbar.on{display:flex}#mbar b{font-size:13px;margin-right:4px}
+#mbar button{flex:none;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;font:inherit;font-size:14px}
+#mbar button.danger{background:#fee2e2;border-color:#fca5a5;color:#991b1b}
+@media (hover:hover) and (pointer:fine) and (min-width:900px){#mbar{display:none!important}}
+.whandle{fill:#2563eb;opacity:.35;cursor:ew-resize;stroke:none}.whandle:hover{opacity:.8}
+.chord{stroke:transparent;stroke-width:1.1px;paint-order:stroke}.chord.sel{fill:#e11d48}
+.bhit{fill:transparent;stroke:none!important;cursor:ns-resize}.bhit:hover{fill:#2563eb26}.beamg.sel .beam{fill:#e11d48}.beamg.sel .stem{stroke:#e11d48}
+#mbar .mc,#mbar .mbb,#mbar .mn{display:none}#mbar[data-kind=n] .mn{display:inline-block}.it{touch-action:pan-y}#mbar[data-kind=c] .mm,#mbar[data-kind=b] .mm{display:none}#mbar[data-kind=c] .mc,#mbar[data-kind=b] .mbb{display:inline-block}
+#chorddlg::backdrop{background:#0006}#chorddlg input{width:100%;padding:10px;font:inherit;font-size:18px;border:1px solid var(--line);border-radius:8px}
+#cd-chips{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}#cd-chips button{flex:1 0 56px;padding:8px 6px;border:1px solid var(--line);border-radius:10px;background:#eef2ff;font:inherit;font-size:17px;font-weight:700;color:#1b3a8a}#cd-chips small{display:block;font-size:10px;font-weight:400;color:#6b7280}
+.selm{fill:#2563eb18;stroke:#2563eb;stroke-width:.12;pointer-events:none}
+#cursorline{fill:var(--pl);opacity:.55;pointer-events:none}
+#toast{position:fixed;left:50%;bottom:48px;transform:translate(-50%,20px);background:#111c;color:#fff;padding:8px 14px;border-radius:20px;opacity:0;transition:.2s;pointer-events:none;z-index:50;max-width:90vw}
+#toast.show{opacity:1;transform:translate(-50%,0)}#toast.err{background:#b91c1cee}
+/* boas-vindas */
+#welcome{margin:8vh auto;max-width:560px;text-align:center;padding:24px}
+body.has-song #welcome{display:none}
+body:not(.has-song) #score,body:not(.has-song) aside,body:not(.has-song) #status{display:none}
+#splash{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(120% 90% at 30% 20%,#4f46e5 0,#1d4ed8 45%,#0369a1 100%);color:#fff;transition:opacity .55s ease;cursor:pointer;overflow:hidden}
+#splash.out{opacity:0;pointer-events:none}
+#splash svg{width:min(62vw,340px);height:auto;overflow:visible;filter:drop-shadow(0 12px 26px #0b1b4d66)}
+#splash .wm{font:700 clamp(40px,11vw,68px)/1 Georgia,"Times New Roman",serif;letter-spacing:1px;margin-top:22px;display:flex}
+#splash .wm span{display:inline-block;opacity:0;animation:wmin .7s cubic-bezier(.2,.8,.2,1) both}
+#splash .tg{margin-top:12px;font-size:15px;opacity:0;letter-spacing:.4px;color:#dbeafe;animation:fade .8s ease 3s both}
+#splash .sk{position:absolute;bottom:max(24px,env(safe-area-inset-bottom));font-size:12px;color:#bfdbfe;opacity:0;animation:fade .6s ease 3.2s both}
+#splash .ln,#splash .stL,#splash .stR,#splash .hd,#splash .shine{transform-box:fill-box;transform-origin:center}
+#splash .wipe{transform-box:fill-box}
+#splash .ln{animation:sl .8s cubic-bezier(.2,.8,.2,1) both}
+#splash .stL{animation:fromL .9s cubic-bezier(.2,.9,.25,1.05) .7s both}
+#splash .stR{animation:fromR .9s cubic-bezier(.2,.9,.25,1.05) .85s both}
+#splash .hd{animation:pop .6s cubic-bezier(.3,1.6,.5,1) 1.55s both}
+#splash .hd2{animation-delay:1.75s}
+#splash .wipe{transform-origin:50% 0;animation:wipe .65s cubic-bezier(.5,0,.2,1) 2s both}
+#splash .shine{animation:shine 1s ease 2.7s both}
+@keyframes sl{from{transform:scaleX(0);opacity:0}to{transform:scaleX(1);opacity:1}}
+@keyframes fromL{from{transform:translate(-420px,-60px) rotate(-14deg);opacity:0}50%{opacity:1}to{transform:none;opacity:1}}
+@keyframes fromR{from{transform:translate(420px,60px) rotate(14deg);opacity:0}50%{opacity:1}to{transform:none;opacity:1}}
+@keyframes pop{from{transform:scale(0) rotate(-90deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+@keyframes wipe{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@keyframes wmin{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes shine{0%{opacity:0;transform:translateX(-160%) skewX(-20deg)}30%{opacity:.7}100%{opacity:0;transform:translateX(160%) skewX(-20deg)}}
+@media (prefers-reduced-motion:reduce){#splash *{animation-duration:.01s!important;animation-delay:0s!important}}
+
+#welcome .hero{display:flex;flex-direction:column;align-items:center;margin-bottom:14px}
+#welcome .nlogo{width:132px;height:132px;filter:drop-shadow(0 10px 18px #1e3a8a40)}
+#welcome h1{font:700 44px/1.1 Georgia,"Times New Roman",serif;letter-spacing:.5px;margin:14px 0 4px;background:linear-gradient(90deg,#4338ca,#0284c7);-webkit-background-clip:text;background-clip:text;color:transparent}
+#welcome .tag{color:var(--muted);font-size:15px}
+#welcome p{color:var(--muted)}
+#welcome .big{background:var(--acc);color:#fff;border:0;border-radius:12px;padding:14px 24px;font-size:16px;margin:12px 0}
+body.drag #scroll{outline:3px dashed var(--acc);outline-offset:-10px}
+#library{text-align:left;margin-top:24px}#library h3{font-size:12px;text-transform:uppercase;color:var(--muted)}
+.rec{display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--line)}.rec .open{flex:1;text-align:left;background:none;border:0;padding:8px 4px;color:var(--ink);font-size:15px}.rec .x{background:none;border:0;color:var(--muted);font-size:18px}
+body.busy{cursor:progress}
+dialog{border:0;border-radius:14px;padding:20px;max-width:560px;width:92vw;box-shadow:0 10px 40px #0005}
+dialog::backdrop{background:#0006}
+dialog h2{margin:0 0 10px}
+.keys{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:13px}.keys kbd{font:12px ui-monospace,Menlo,monospace;background:#f1f3f5;border:1px solid var(--line);border-radius:5px;padding:1px 6px;white-space:nowrap}
+.exgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.exgrid button{padding:14px;border:1px solid var(--line);background:#f7f8fa;border-radius:10px;text-align:left}.exgrid small{display:block;color:var(--muted)}
+#printhost{display:none}
+@media print{
+  body.printing>*:not(#printhost){display:none!important}
+  body.printing{display:block;overflow:visible;background:#fff}
+  body.printing #printhost{display:block}
+  .pg{page-break-after:always}.pg:last-child{page-break-after:auto}
+  @page{size:A4;margin:10mm}
+}
+#aclose{display:none;float:right;border:1px solid var(--line);background:#f7f8fa;border-radius:8px;padding:6px 12px}
+@media (max-width:800px){aside{position:absolute;right:0;top:0;bottom:0;z-index:5;box-shadow:-4px 0 20px #0003;width:min(88vw,320px)}#aclose{display:block}.tb kbd{display:none}.tb{padding:6px 9px}#scroll{padding:6px}}
+
+#palette{background:#fff;border-top:1px solid var(--line);flex:none}
+body:not(.has-song) #palette{display:none}
+#palette.min .ptab{display:none}
+#ptabs{display:flex;gap:2px;padding:4px 8px;background:#f3f4f6;align-items:center;overflow-x:auto;scrollbar-width:none}#ptabs button{flex:none;white-space:nowrap}#palette{max-width:100vw;overflow-x:hidden}
+#ptabs button{border:0;background:transparent;padding:5px 12px;border-radius:7px;color:#374151}
+#ptabs button.on{background:#fff;box-shadow:0 0 0 1px var(--line);font-weight:600}
+#ptabs .sp{flex:1}
+.ptab{display:none;padding:8px 10px;gap:14px;align-items:flex-start;flex-wrap:wrap;overflow-x:auto;max-height:34vh}
+.ptab.on{display:flex}
+.ptab[data-p="teclado"]{max-height:58vh;overflow-y:auto}
+.grp{display:flex;gap:4px;padding-right:12px;border-right:1px solid var(--line)}
+.grp:last-of-type{border-right:0}
+.pb{width:52px;height:56px;border:1px solid var(--line);background:#fafafb;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:0}
+.pb.w{width:70px}
+.pb:hover{background:#eef2ff}.pb.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.pb i.g,.pb b{font-style:normal;font-size:26px;line-height:30px;height:30px}
+.pb i.g{font-family:Bravura}
+.pb b{font-weight:600;font-size:18px;font-family:Georgia,serif}
+.pb small{font-size:10px;color:var(--muted);line-height:12px}.pb.on small{color:#fff}
+.hint{color:var(--muted);font-size:12px;align-self:center}
+.kbtop{display:flex;gap:10px;align-items:center;flex-wrap:wrap;width:100%}
+.inl{font-size:12px;color:var(--muted);display:flex;gap:4px;align-items:center}.inl select{padding:4px;border:1px solid var(--line);border-radius:6px;font:inherit}
+.btn.rec{background:#dc2626;color:#fff;border-color:#dc2626}.btn.rec.on{background:#111}
+#kbwrap{overflow-x:auto;overflow-y:hidden;width:100%;scrollbar-width:none}#kbwrap::-webkit-scrollbar{display:none}
+#kbmap{position:relative;height:26px;width:100%;background:#eef0f3;border:1px solid var(--line);border-radius:6px;touch-action:none;cursor:grab;margin-top:6px;overflow:hidden;background-image:repeating-linear-gradient(90deg,transparent 0,transparent calc(12.5% - 1px),#c5cad3 calc(12.5% - 1px),#c5cad3 12.5%)}
+#kbmap i{position:absolute;top:8px;font:9px system-ui;color:#7a8190;font-style:normal;transform:translateX(3px);pointer-events:none}
+#kbthumb{position:absolute;top:0;bottom:0;left:0;width:30%;background:#2563eb33;border:2px solid #2563eb;border-radius:5px;pointer-events:none}
+#kb{position:relative;height:150px;width:max-content;min-width:100%;user-select:none;touch-action:none;margin-top:6px;padding-top:12px;box-sizing:content-box;background:linear-gradient(#2a2a2e,#111);border-radius:8px 8px 4px 4px;box-shadow:0 6px 14px #0006, inset 0 1px 0 #fff3}
+#kb::before{content:"";position:absolute;left:0;right:0;top:0;height:12px;background:linear-gradient(#8f1d1d,#5c1010);border-radius:8px 8px 0 0;box-shadow:inset 0 -2px 3px #0008}
+#kb .wk{position:absolute;top:12px;height:146px;box-sizing:border-box;background:linear-gradient(180deg,#d9d9d4 0,#fbfbf8 10%,#fff 60%,#f1f0ea 92%,#d4d3cb 100%);border:1px solid #6b6b66;border-top:0;border-radius:0 0 6px 6px;box-shadow:inset -2px 0 2px #0000001f,inset 2px 0 1px #fff,inset 0 -6px 4px #00000014,0 3px 3px #0005;transition:transform .04s,box-shadow .04s,background .04s}
+#kb .wk.dn{background:linear-gradient(180deg,#9db9ea 0,#cfe0ff 12%,#e8f0ff 70%,#b9cdf2 100%);box-shadow:inset -2px 0 2px #0000002a,inset 2px 0 1px #fff8,inset 0 -3px 3px #00000022,0 1px 1px #0005;transform:translateY(2px)}
+#kb .bk{position:absolute;top:12px;height:92px;box-sizing:border-box;z-index:2;background:linear-gradient(180deg,#444 0,#1b1b1d 8%,#0d0d0e 80%,#2b2b2d 100%);border:1px solid #000;border-top:0;border-radius:0 0 5px 5px;box-shadow:inset 2px 0 1px #ffffff2a,inset -2px 0 1px #00000099,inset 0 -9px 0 -2px #3c3c40,0 5px 5px #000a;transition:transform .04s,box-shadow .04s}
+#kb .bk::after{content:"";position:absolute;left:3px;right:3px;top:2px;height:55%;background:linear-gradient(90deg,#ffffff30,#ffffff08 40%,transparent);border-radius:2px 2px 8px 8px;pointer-events:none}
+#kb .bk.dn{background:linear-gradient(180deg,#3b66c9,#1d3f96 80%,#2b55b8);box-shadow:inset 2px 0 1px #fff3,inset -2px 0 1px #0007,0 2px 2px #000a;transform:translateY(2px)}
+#kb .wk small{position:absolute;bottom:6px;left:0;right:0;text-align:center;font-size:10px;color:#777;font-weight:600;text-shadow:0 1px 0 #fff}
+#kb .wk::after{content:"";position:absolute;left:0;right:0;bottom:0;height:12px;border-radius:0 0 6px 6px;background:linear-gradient(#0000,#0000000d);pointer-events:none}
+body.rec-on #in-rec{background:#111}
+.slur{fill:currentColor}.hairpin{stroke:currentColor}.it.sel~.x{}
+.pb i.dg{font-size:22px}
+#svg .it.rng *{color:var(--acc);fill:var(--acc);stroke:var(--acc)}
+#svg .it.rng .hit{fill:#2563eb18;stroke:none}
+.tup{cursor:ns-resize}.tup .thit{fill:transparent}.tup:hover .thit{fill:#2563eb14}.tup.sel{color:var(--acc);fill:var(--acc);stroke:var(--acc)}.tup.sel .thit{fill:#2563eb22;stroke:none}
+.tup.sel .tupl{stroke:var(--acc)}.tup.sel text{stroke:none}
+</style>
+</head>
+<body class="nopanel-off">
+<header>
+  <button class="tb" id="new" title="Nova partitura (⌥N)">Nova <kbd>⌥N</kbd></button>
+  <button class="tb" id="open" title="Abrir (⌘O)">Abrir <kbd>⌘O</kbd></button>
+  <button class="tb" id="save" title="Salvar (⌘S)">Salvar <kbd>⌘S</kbd></button>
+  <button class="tb" id="export" title="Exportar (⌘E)">Exportar <kbd>⌘E</kbd></button>
+  <span style="width:8px"></span>
+  <button class="tb" id="play" title="Tocar / pausar (Espaço)"><span class="ico">▶</span><span class="lbl">Tocar</span> <kbd>Espaço</kbd></button>
+  <button class="tb" id="metro" title="Metrônomo (⌥M)">♩ Metrônomo <kbd>⌥M</kbd></button>
+  <label class="tb" title="Menor nota da música: a gravação arredonda tempos e durações para esta grade" style="gap:6px">Menor nota <select id="quant" style="padding:3px;border-radius:5px;font:inherit"><option value="240">semínima</option><option value="120">colcheia</option><option value="60" selected>semicolcheia</option><option value="30">fusa</option></select></label>
+  <button class="tb" id="rec" title="Gravar tocando no teclado, com 1 compasso de contagem (⌥R)">● Gravar <kbd>⌥R</kbd></button>
+  <button class="tb" id="stop" title="Parar (Esc)">■</button>
+  <button class="tb" id="loop" title="Repetir em loop o trecho selecionado">↻ Loop</button>
+  <span class="tb" style="gap:8px;border:0">Vel. <input id="speed" type="range" min="40" max="150" value="100" style="width:90px"><span id="speedval" style="min-width:36px">100%</span></span>
+  <span class="sp"></span>
+  <button class="tb" id="undo" title="Desfazer (⌘Z)">↶</button><button class="tb" id="redo" title="Refazer (⇧⌘Z)">↷</button>
+  <button class="tb" id="zout">−</button><span id="zoomval" style="min-width:40px;text-align:center">100%</span><button class="tb" id="zin">+</button>
+  <button class="tb" id="palbtn" title="Paleta de edição (⌘J)">Paleta</button>
+  <button class="tb" id="panelbtn" title="Painel (⌘I)">Painel</button>
+  <button class="tb" id="helpbtn" title="Atalhos (?)">?</button>
+  <button class="tb" id="morebtn" title="Mais opções" aria-label="Mais opções">⋯</button>
+</header>
+<div id="sheet"><div class="bg" data-close="1"></div><div class="pn">
+<div class="gr"></div>
+<h4>Arquivo</h4><div class="grid"><button data-go="#new">＋ Nova partitura</button><button data-go="#open">Abrir</button><button data-go="#save">Salvar</button><button data-go="#export">Exportar</button></div>
+<h4>Reprodução</h4><div class="grid"><button data-go="#loop" data-stay="1" id="s-loop">↻ Repetir trecho</button><button data-go="#metro" data-stay="1" id="s-metro">♩ Metrônomo</button>
+<label class="full">Velocidade <input type="range" id="s-speed" min="40" max="150" value="100"><b id="s-speedv" style="min-width:42px;text-align:right">100%</b></label></div>
+<h4>Gravação</h4><div class="grid"><label class="full">Menor nota <select id="s-quant"><option value="240">semínima</option><option value="120">colcheia</option><option value="60">semicolcheia</option><option value="30">fusa</option></select></label>
+<label class="full"><input type="checkbox" id="s-click" checked> Clique de metrônomo ao gravar</label></div>
+<h4>Ver</h4><div class="grid"><button data-go="#zout" data-stay="1">Zoom −</button><button data-go="#zin" data-stay="1">Zoom +</button><button data-go="#palbtn">Paleta de edição</button><button data-go="#panelbtn">Painel</button></div>
+<h4>Ajuda</h4><div class="grid"><button data-go="#helpbtn" class="full">Atalhos e dicas</button></div>
+</div></div>
+
+<main>
+  <div id="scroll">
+    <div id="welcome">
+      <div class="hero"><svg class="nlogo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Notare">
+<defs>
+<linearGradient id="nl-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4f46e5"/><stop offset="1" stop-color="#0ea5e9"/></linearGradient>
+<linearGradient id="nl-sh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".28"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<filter id="nl-ds" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="6" stdDeviation="7" flood-color="#0b1b4d" flood-opacity=".45"/></filter>
+</defs>
+<rect width="512" height="512" rx="116" fill="url(#nl-g)"/>
+<rect width="512" height="512" rx="116" fill="url(#nl-sh)"/>
+<g stroke="#fff" stroke-opacity=".38" stroke-width="7" stroke-linecap="round">
+<line x1="64" y1="196" x2="448" y2="196"/><line x1="64" y1="238" x2="448" y2="238"/><line x1="64" y1="280" x2="448" y2="280"/><line x1="64" y1="322" x2="448" y2="322"/><line x1="64" y1="364" x2="448" y2="364"/>
+</g>
+<g fill="#fff" filter="url(#nl-ds)">
+<rect x="168" y="112" width="20" height="260" rx="4"/>
+<rect x="326" y="112" width="20" height="260" rx="4"/>
+<polygon points="168,112 206,112 346,372 308,372"/>
+<ellipse cx="141" cy="372" rx="44" ry="31" transform="rotate(-22 141 372)"/>
+<ellipse cx="299" cy="372" rx="44" ry="31" transform="rotate(-22 299 372)"/>
+</g>
+</svg>
+<h1>Notare</h1><div class="tag">Abra, ouça, grave e edite suas partituras</div></div>
+      <button class="big" id="welcome-open">Abrir arquivo .enc</button> <button class="big" id="welcome-new" style="background:#fff;color:var(--acc)">Nova partitura</button>
+      <p>ou arraste o arquivo para esta janela</p>
+      <div id="library"></div>
+    </div>
+    <div id="score"></div>
+  </div>
+  <aside>
+    <button id="aclose" onclick="document.body.classList.add('nopanel')">Fechar ✕</button>
+    <h3>Música</h3>
+    <label>Título</label><input type="text" id="f-title">
+    <label>Autor</label><input type="text" id="f-composer">
+    <h3 id="m-title">Compasso</h3>
+    <div class="row"><div><label>Armadura</label><select id="m-key">
+      <option value="-7">7 bemóis</option><option value="-6">6 bemóis</option><option value="-5">5 bemóis</option><option value="-4">4 bemóis</option><option value="-3">3 bemóis</option><option value="-2">2 bemóis</option><option value="-1">1 bemol</option><option value="0">Sem acidentes</option><option value="1">1 sustenido</option><option value="2">2 sustenidos</option><option value="3">3 sustenidos</option><option value="4">4 sustenidos</option><option value="5">5 sustenidos</option><option value="6">6 sustenidos</option><option value="7">7 sustenidos</option></select></div>
+      <div><label>Andamento (♩=)</label><input type="number" id="m-bpm" min="20" max="300"></div></div>
+    <div class="row"><div><label>Fórmula</label><div class="row"><input type="number" id="m-num" min="1" max="32"><input type="number" id="m-den" min="1" max="16"></div></div></div>
+    <label style="margin-top:8px">Largura do compasso <small style="color:var(--muted)">( [ estreita · ] alarga · \ automática )</small></label>
+    <div class="row"><button class="btn" id="w-narrow">◂ Estreitar</button><button class="btn" id="w-wide">Alargar ▸</button><button class="btn" id="w-auto">Auto</button></div>
+    <label style="margin-top:8px">Linhas <small style="color:var(--muted)">( L nova linha aqui · ⇧L manter na linha )</small></label>
+    <div class="row"><button class="btn" id="b-break">↵ Nova linha aqui</button><button class="btn" id="b-join">Juntar à linha</button></div>
+    <div class="row" style="margin-top:8px"><button class="btn" id="m-add">+ Inserir compasso</button><button class="btn" id="m-del" title="Apaga o compasso (ou o trecho) selecionado — Delete">Apagar compasso(s)</button></div>
+    <div class="row" style="margin-top:6px"><button class="btn" id="m-cut" title="Apaga o compasso selecionado e todos os seguintes">Apagar daqui até o fim</button><button class="btn" id="m-clr" title="Deixa só pausas, mantém os compassos — ⇧Delete">Esvaziar</button></div>
+    <label style="margin-top:8px">Altura de TODAS as linhas de cifras <b id="c-linev">0.0</b></label>
+    <div class="row"><input type="range" id="c-line" min="-3" max="12" step="0.5" value="0" style="flex:1"><button class="btn" id="c-line0">Zerar</button></div>
+    <div class="row" style="margin-top:6px"><button class="btn" id="c-enter">♪ Cifrar a partir da seleção</button></div>
+<h3>Visualização</h3>
+    <label>Compassos por linha</label><select id="v-mpl"><option value="0">Automático</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="8">8</option></select>
+    <h3>Transpor tudo</h3>
+    <div class="row"><button class="btn" id="tr-down">−½ tom</button><button class="btn" id="tr-up">+½ tom</button><button class="btn" id="tr-oct-down">−8ª</button><button class="btn" id="tr-oct-up">+8ª</button></div>
+    <h3>Instrumentos</h3>
+    <div id="parts"></div>
+  </aside>
+</main>
+<div id="palette">
+  <div id="ptabs">
+    <button data-tab="notas" class="on">Notas</button><button data-tab="pausas">Pausas</button><button data-tab="dinamica">Dinâmica</button><button data-tab="sinais">Sinais</button><button data-tab="teclado">Teclado</button>
+    <span class="sp"></span><button id="pclose" title="Recolher paleta (⌘J)">▾</button>
+  </div>
+  <div class="ptab on" data-p="notas">
+    <div class="grp" id="g-notes">
+      <button class="pb" data-dur="1" title="Semibreve (1)"><i class="g">&#xECA2;</i><small>1</small></button>
+      <button class="pb" data-dur="2" title="Mínima (2)"><i class="g">&#xECA3;</i><small>2</small></button>
+      <button class="pb" data-dur="3" title="Semínima (3)"><i class="g">&#xECA5;</i><small>3</small></button>
+      <button class="pb" data-dur="4" title="Colcheia (4)"><i class="g">&#xECA7;</i><small>4</small></button>
+      <button class="pb" data-dur="5" title="Semicolcheia (5)"><i class="g">&#xECA9;</i><small>5</small></button>
+      <button class="pb" data-dur="6" title="Fusa (6)"><i class="g">&#xECAB;</i><small>6</small></button>
+      <button class="pb" data-dur="7" title="Semifusa (7)"><i class="g">&#xECAD;</i><small>7</small></button>
+    </div>
+    <div class="grp">
+      <button class="pb" data-act="dot" title="Ponto de aumento ( . )"><i class="g">&#xE1E7;</i><small>ponto</small></button>
+      <button class="pb" data-act="tuplet" title="Tercina (X)"><b>3</b><small>tercina</small></button>
+      <button class="pb w" data-act="tie" title="Ligadura de prolongamento (mesma nota) — T"><b>⌣</b><small>prolongamento</small></button>
+      <button class="pb w" data-act="slur" title="Ligadura de expressão (S). Selecione várias notas com ⇧← ⇧→"><b>⌢</b><small>expressão</small></button>
+    </div>
+    <div class="grp">
+      <button class="pb" data-act="sharp" title="Sustenido ( + )"><i class="g">&#xE262;</i><small>#</small></button>
+      <button class="pb" data-act="flat" title="Bemol ( − )"><i class="g">&#xE260;</i><small>b</small></button>
+      <button class="pb" data-act="natural" title="Bequadro ( 0 )"><i class="g">&#xE261;</i><small>♮</small></button>
+    </div>
+    <div class="grp">
+      <button class="pb" data-act="up" title="Subir (↑)"><b>↑</b><small>subir</small></button>
+      <button class="pb" data-act="down" title="Descer (↓)"><b>↓</b><small>descer</small></button>
+      <button class="pb" data-act="insert" title="Inserir valor depois (Enter)"><b>＋</b><small>inserir</small></button>
+      <button class="pb" data-act="del" title="Apagar (Delete)"><b>⌫</b><small>apagar</small></button>
+    </div>
+  </div>
+  <div class="ptab" data-p="pausas">
+    <div class="grp">
+      <button class="pb" data-rest="1" title="Pausa de semibreve"><i class="g">&#xE4E3;</i><small>1</small></button>
+      <button class="pb" data-rest="2" title="Pausa de mínima"><i class="g">&#xE4E4;</i><small>2</small></button>
+      <button class="pb" data-rest="3" title="Pausa de semínima"><i class="g">&#xE4E5;</i><small>3</small></button>
+      <button class="pb" data-rest="4" title="Pausa de colcheia"><i class="g">&#xE4E6;</i><small>4</small></button>
+      <button class="pb" data-rest="5" title="Pausa de semicolcheia"><i class="g">&#xE4E7;</i><small>5</small></button>
+      <button class="pb" data-rest="6" title="Pausa de fusa"><i class="g">&#xE4E8;</i><small>6</small></button>
+      <button class="pb" data-rest="7" title="Pausa de semifusa"><i class="g">&#xE4E9;</i><small>7</small></button>
+    </div>
+    <div class="grp"><button class="pb" data-act="dot"><i class="g">&#xE1E7;</i><small>ponto</small></button></div>
+    <span class="hint">Selecione uma nota ou pausa e toque numa pausa para trocar. Atalho: R.</span>
+  </div>
+  <div class="ptab" data-p="dinamica">
+    <div class="grp">
+      <button class="pb" data-dyn="ppp"><i class="g dg">&#xE520;&#xE520;&#xE520;</i><small>ppp</small></button>
+      <button class="pb" data-dyn="pp"><i class="g dg">&#xE520;&#xE520;</i><small>pp</small></button>
+      <button class="pb" data-dyn="p"><i class="g dg">&#xE520;</i><small>p</small></button>
+      <button class="pb" data-dyn="mp"><i class="g dg">&#xE521;&#xE520;</i><small>mp</small></button>
+      <button class="pb" data-dyn="mf"><i class="g dg">&#xE521;&#xE522;</i><small>mf</small></button>
+      <button class="pb" data-dyn="f"><i class="g dg">&#xE522;</i><small>f</small></button>
+      <button class="pb" data-dyn="ff"><i class="g dg">&#xE522;&#xE522;</i><small>ff</small></button>
+      <button class="pb" data-dyn="fff"><i class="g dg">&#xE522;&#xE522;&#xE522;</i><small>fff</small></button>
+      <button class="pb" data-dyn="sfz"><i class="g dg">&#xE524;&#xE522;&#xE525;</i><small>sfz</small></button>
+      <button class="pb" data-dyn="fp"><i class="g dg">&#xE522;&#xE520;</i><small>fp</small></button>
+    </div>
+    <div class="grp">
+      <button class="pb w" data-act="cresc" title="Crescendo (do item selecionado até o fim da seleção ⇧→)"><b>&lt;</b><small>crescendo</small></button>
+      <button class="pb w" data-act="dim" title="Diminuendo"><b>&gt;</b><small>diminuendo</small></button>
+      <button class="pb w" data-act="clearexp" title="Remover dinâmica, garfo e ligadura de expressão da nota"><b>✕</b><small>limpar</small></button>
+    </div>
+    <span class="hint">Selecione uma nota e toque numa dinâmica (toque de novo para tirar). Para crescendo e ligadura de expressão, estenda a seleção com ⇧→. Na reprodução a dinâmica muda o volume das notas.</span>
+  </div>
+  <div class="ptab" data-p="sinais">
+    <div class="grp">
+      <button class="pb w" data-sign="repStart" title="Início de repetição"><b>𝄆</b><small>início ritornello</small></button>
+      <button class="pb w" data-sign="repEnd" title="Fim de repetição"><b>𝄇</b><small>fim ritornello</small></button>
+      <button class="pb w" data-sign="volta1" title="1ª casa começa neste compasso"><b>1.</b><small>1ª casa</small></button>
+      <button class="pb w" data-sign="volta2" title="2ª casa começa neste compasso"><b>2.</b><small>2ª casa</small></button>
+      <button class="pb w" data-sign="volta3" title="3ª casa"><b>3.</b><small>3ª casa</small></button>
+      <button class="pb w" data-sign="volta12" title="1ª e 2ª casas juntas"><b>1,2.</b><small>1ª e 2ª</small></button>
+    </div>
+    <div class="grp">
+      <button class="pb w" data-sign="segno" title="Segno"><i class="g">&#xE047;</i><small>segno</small></button>
+      <button class="pb w" data-sign="coda" title="Coda"><i class="g">&#xE048;</i><small>coda</small></button>
+      <button class="pb w" data-sign="toCoda" title="To Coda"><b>⊕</b><small>to coda</small></button>
+      <button class="pb w" data-sign="fine" title="Fine"><b>Fine</b><small>fim</small></button>
+      <button class="pb w" data-sign="dc" title="Da Capo"><b>D.C.</b><small>da capo</small></button>
+      <button class="pb w" data-sign="ds" title="Dal Segno"><b>D.S.</b><small>dal segno</small></button>
+    </div>
+    <div class="grp">
+      <button class="pb w" data-sign="dcCoda"><b>D.C.</b><small>al coda</small></button>
+      <button class="pb w" data-sign="dsCoda"><b>D.S.</b><small>al coda</small></button>
+      <button class="pb w" data-sign="dcFine"><b>D.C.</b><small>al fine</small></button>
+      <button class="pb w" data-sign="dsFine"><b>D.S.</b><small>al fine</small></button>
+    </div>
+    <div class="grp">
+      <button class="pb w" data-sign="double" title="Barra dupla"><b>‖</b><small>barra dupla</small></button>
+      <button class="pb w" data-sign="final" title="Barra final"><b>𝄂</b><small>barra final</small></button>
+      <button class="pb w" data-sign="clear" title="Remover todos os sinais deste compasso"><b>✕</b><small>limpar</small></button>
+    </div>
+    <span class="hint" id="signhint">Vale para o compasso selecionado.</span>
+  </div>
+  <div class="ptab" data-p="teclado">
+    <div class="kbtop">
+      <button class="btn" id="midi-on">Ativar teclado MIDI</button><span id="midi-st" class="hint">Sem teclado MIDI. Use o teclado na tela.</span>
+      <label class="inl">Modo <select id="in-mode"><option value="step">Passo a passo</option><option value="rec">Gravar em tempo real</option></select></label>
+      <label class="inl" id="l-quant">Quantizar <select id="in-quant"><option value="240">semínima</option><option value="120">colcheia</option><option value="60" selected>semicolcheia</option><option value="30">fusa</option></select></label>
+      <label class="inl" id="l-metro"><input type="checkbox" id="in-metro" checked> Clique ao gravar</label>
+      <span class="inl"><button class="btn" id="oct-dn" title="Oitava abaixo">◂</button><b id="oct-lbl" style="min-width:74px;text-align:center;color:var(--ink,#111)">Oitava</b><button class="btn" id="oct-up" title="Oitava acima">▸</button></span>
+      <button class="btn rec" id="in-rec">● Gravar</button>
+    </div>
+    <div id="kbmap" title="Arraste para escolher a região do teclado"><div id="kbthumb"></div></div>
+    <div id="kbwrap"><div id="kb"></div></div>
+  </div>
+</div>
+<div id="splash" aria-label="Notare"><svg viewBox="40 90 432 330" xmlns="http://www.w3.org/2000/svg">
+<defs><clipPath id="sp-cp"><rect class="wipe" x="150" y="100" width="220" height="290"/></clipPath><linearGradient id="sp-sh"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
+<g stroke="#fff" stroke-opacity=".5" stroke-width="7" stroke-linecap="round">
+<line class="ln" style="animation-delay:0s" x1="64" y1="196" x2="448" y2="196"/><line class="ln" style="animation-delay:.1s" x1="64" y1="238" x2="448" y2="238"/><line class="ln" style="animation-delay:.2s" x1="64" y1="280" x2="448" y2="280"/><line class="ln" style="animation-delay:.3s" x1="64" y1="322" x2="448" y2="322"/><line class="ln" style="animation-delay:.4s" x1="64" y1="364" x2="448" y2="364"/></g>
+<g fill="#fff">
+<rect class="stL" x="168" y="112" width="20" height="260" rx="4"/>
+<rect class="stR" x="326" y="112" width="20" height="260" rx="4"/>
+<g clip-path="url(#sp-cp)"><polygon points="168,112 206,112 346,372 308,372"/></g>
+<g class="hd"><ellipse cx="141" cy="372" rx="44" ry="31" transform="rotate(-22 141 372)"/></g>
+<g class="hd hd2"><ellipse cx="299" cy="372" rx="44" ry="31" transform="rotate(-22 299 372)"/></g>
+</g>
+<rect class="shine" x="150" y="100" width="60" height="300" fill="url(#sp-sh)" style="mix-blend-mode:overlay"/>
+</svg>
+<div class="wm"><span style="animation-delay:2.30s">N</span><span style="animation-delay:2.39s">o</span><span style="animation-delay:2.48s">t</span><span style="animation-delay:2.57s">a</span><span style="animation-delay:2.66s">r</span><span style="animation-delay:2.75s">e</span></div><div class="tg">Abra, ouça, grave e edite suas partituras</div><div class="sk">toque para entrar</div></div>
+<div id="countin"></div>
+<div id="mbar"><b id="mb-lbl">Compasso</b><button id="mb-chord" class="mm">♪ Cifrar</button><button id="mb-nl" class="mn">◂ Nota</button><button id="mb-nr2" class="mn">Nota ▸</button><button id="mb-n0" class="mn">Zerar</button>
+  <button id="mb-del" class="danger mm">Apagar</button><button id="mb-ext" class="mm" title="Aumentar o trecho em 1 compasso">+1 ▸</button><button id="mb-shr" class="mm" title="Diminuir o trecho em 1 compasso">◂ −1</button><button id="mb-cut" class="danger mm">Até o fim</button>
+  <button id="mb-play" class="mm">▶ Trecho</button><button id="mb-clr" class="mm">Esvaziar</button>
+  <button id="mb-nr" class="mm">◂ Estreitar</button><button id="mb-wd" class="mm">Alargar ▸</button><button id="mb-brk" class="mm">↵ Linha</button><button id="mb-cup" class="mc">▲ Linha</button><button id="mb-cdn" class="mc">▼ Linha</button><button id="mb-cupa" class="mc">▲ Todas</button><button id="mb-cdna" class="mc">▼ Todas</button><button id="mb-cl" class="mc">◂</button><button id="mb-cr" class="mc">▸</button><button id="mb-cu1" class="mc">▲ Só esta</button><button id="mb-cd1" class="mc">▼ Só esta</button><button id="mb-cprev" class="mc">⇤ Nota</button><button id="mb-cnext" class="mc">Nota ⇥</button><button id="mb-cedit" class="mc">Editar</button><button id="mb-cdel" class="mc danger">Apagar</button><button id="mb-c0" class="mc">Zerar</button>
+<button id="mb-bup" class="mbb">▲ Barra</button><button id="mb-bdn" class="mbb">▼ Barra</button><button id="mb-bt1" class="mbb">↗ Inclinar</button><button id="mb-bt2" class="mbb">↘ Inclinar</button><button id="mb-b0" class="mbb">Automático</button><button id="mb-x">✕</button></div>
+<div id="status"></div>
+<div id="toast"></div>
+<div id="printhost"></div>
+<dialog id="exportdlg"><h2>Exportar</h2>
+  <div class="exgrid">
+    <button id="ex-pdf">PDF<small>Partitura em páginas A4</small></button>
+    <button id="ex-xml">MusicXML<small>Para MuseScore, Finale, Sibelius… (dentro de um .zip)</small></button>
+    <button id="ex-midi">MIDI<small>Com repetições, andamento e instrumentos (dentro de um .zip)</small></button>
+    <button id="ex-own">Arquivo do app (.leitor)<small>Guarda tudo para continuar editando</small></button>
+  </div></dialog>
+<dialog id="pdfdlg"><h2>Exportar PDF</h2>
+  <label style="display:block;font-size:12px;color:var(--muted)">Compassos por linha</label>
+  <select id="pdf-mpl" style="width:100%;padding:8px;font:inherit;border:1px solid var(--line);border-radius:6px"><option value="0">Automático</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="8">8</option></select>
+  <label style="display:block;font-size:12px;color:var(--muted);margin-top:12px">Tamanho das notas e da pauta: <b id="pdf-mmv">2.6 mm</b></label>
+  <input type="range" id="pdf-mm" min="1.6" max="4" step="0.1" value="2.6" style="width:100%">
+  <label style="display:block;font-size:12px;color:var(--muted);margin-top:12px">Papel</label>
+  <select id="pdf-or" style="width:100%;padding:8px;font:inherit;border:1px solid var(--line);border-radius:6px"><option value="p">A4 em pé</option><option value="l">A4 deitado</option></select>
+  <div style="margin-top:16px;display:flex;justify-content:flex-end"><button class="btn" id="pdf-go" style="background:var(--acc);color:#fff;border-color:var(--acc);padding:8px 18px">Gerar PDF</button></div></dialog>
+<dialog id="newdlg"><h2>Nova partitura</h2>
+  <div style="display:grid;gap:8px;grid-template-columns:1fr 1fr;min-width:min(420px,80vw)">
+    <label style="grid-column:1/3">Título<input type="text" id="n-title" placeholder="Sem título" style="width:100%;padding:8px;font:inherit;border:1px solid var(--line);border-radius:6px"></label>
+    <label style="grid-column:1/3">Compositor<input type="text" id="n-composer" style="width:100%;padding:8px;font:inherit;border:1px solid var(--line);border-radius:6px"></label>
+    <label>Pautas<select id="n-staves" style="width:100%;padding:8px;font:inherit"><option value="one">Uma pauta</option><option value="piano">Piano (2 pautas)</option></select></label>
+    <label id="n-clefrow">Clave<select id="n-clef" style="width:100%;padding:8px;font:inherit"><option value="G">Sol</option><option value="F">Fá</option><option value="C3">Dó (3ª linha)</option><option value="C4">Dó (4ª linha)</option><option value="G8down">Sol 8ª abaixo</option></select></label>
+    <label>Compasso<select id="n-sig" style="width:100%;padding:8px;font:inherit"><option>4/4</option><option>3/4</option><option>2/4</option><option>2/2</option><option>6/8</option><option>9/8</option><option>12/8</option><option>5/4</option><option>7/8</option><option>3/8</option><option>3/2</option></select></label>
+    <label>Tonalidade<select id="n-key" style="width:100%;padding:8px;font:inherit"><option value="0">Dó M / Lá m</option><option value="1">Sol M / Mi m</option><option value="2">Ré M / Si m</option><option value="3">Lá M / Fá# m</option><option value="4">Mi M / Dó# m</option><option value="5">Si M</option><option value="-1">Fá M / Ré m</option><option value="-2">Si♭ M / Sol m</option><option value="-3">Mi♭ M / Dó m</option><option value="-4">Lá♭ M / Fá m</option><option value="-5">Ré♭ M</option></select></label>
+    <label>Andamento (♩=)<input type="number" id="n-bpm" value="100" min="20" max="300" style="width:100%;padding:8px;font:inherit;border:1px solid var(--line);border-radius:6px"></label>
+    <label>Nº de compassos<input type="number" id="n-count" value="16" min="1" max="400" style="width:100%;padding:8px;font:inherit;border:1px solid var(--line);border-radius:6px"></label>
+    <label>Compassos por linha<select id="n-mpl" style="width:100%;padding:8px;font:inherit"><option value="0">Automático</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option><option value="6">6</option><option value="8">8</option></select></label>
+    <label>Instrumento<select id="n-prog" style="width:100%;padding:8px;font:inherit"><option value="0">Piano</option><option value="4">Piano elétrico</option><option value="19">Órgão de igreja</option><option value="16">Órgão</option><option value="48">Cordas</option><option value="73">Flauta</option><option value="40">Violino</option><option value="24">Violão</option><option value="52">Coro</option></select></label>
+  </div>
+  <div style="margin-top:16px;display:flex;justify-content:flex-end;gap:8px"><button class="btn" onclick="document.getElementById('newdlg').close()">Cancelar</button><button class="btn" id="n-go" style="background:var(--acc);color:#fff;border-color:var(--acc);padding:8px 18px">Criar</button></div></dialog>
+<dialog id="chorddlg" style="max-width:min(440px,94vw)"><h2 id="cd-title" style="font-size:15px;margin:0 0 10px">Cifra</h2>
+<input id="cd-input" type="text" placeholder="ex.: C, Am7, F#m, Bb/D" autocapitalize="characters" autocomplete="off" spellcheck="false">
+<div id="cd-chips"></div>
+<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end"><button class="btn" id="cd-end">Terminar</button><button class="btn" id="cd-del">Sem cifra</button><button class="btn" id="cd-skip">Pular ▸</button><button class="btn" id="cd-ok" style="background:var(--acc);color:#fff;border-color:var(--acc)">OK ▸</button></div>
+<div style="font-size:11px;color:var(--muted);margin-top:8px">Enter confirma e vai para a próxima nota. Toque num acorde da tonalidade para inserir direto.</div></dialog>
+<dialog id="askdlg"><h2 id="ask-title"></h2><input type="text" id="ask-input" style="width:100%;padding:8px;font:inherit;border:1px solid var(--line);border-radius:6px"><div class="row" style="margin-top:12px;justify-content:flex-end;display:flex;gap:8px"><button class="btn" id="ask-cancel">Cancelar</button><button class="btn" id="ask-ok" style="background:var(--acc);color:#fff;border-color:var(--acc)">OK</button></div></dialog>
+<dialog id="help"><h2>Atalhos</h2>
+  <div class="keys">
+    <kbd>Espaço</kbd><span>Tocar / pausar (a partir da seleção, ou só o trecho selecionado)</span>
+    <kbd>⌥⇧← →</kbd><span>Move a nota selecionada para trás/frente (só o desenho; ⌥⇧0 zera). Também dá para arrastar a nota para o lado</span>
+    <kbd>K</kbd><span>Cifrar: abre a janela de cifra na nota selecionada; Enter vai para a próxima nota (toque num acorde da tonalidade para inserir direto)</span>
+    <kbd>↑ ↓ (cifra)</kbd><span>Toque numa cifra: ↑ ↓ sobem/descem a linha de cifras daquela linha da partitura; ⌥↑ ⌥↓ todas as linhas; ⇧↑ ⇧↓ só aquela cifra; ← → deslocam; ⌥← ⌥→ trocam de nota; arrastar também funciona</span>
+    <kbd>↑ ↓ (barra)</kbd><span>Toque na barra das colcheias: ↑ ↓ sobem/descem; ⇧↑ ⇧↓ inclinam; Delete volta ao automático</span>
+    <kbd>Delete</kbd><span>Com compasso(s) selecionado(s): apaga o compasso inteiro (⇧Delete só esvazia). Com uma nota selecionada, apaga a nota; ⌘⌫ apaga o compasso dela</span>
+    <kbd>⌥N</kbd><span>Nova partitura</span>
+    <kbd>[ ]</kbd><span>Estreitar / alargar o compasso (ou arraste a alça azul na barra final)</span>
+    <kbd>L · ⇧L</kbd><span>Nova linha neste compasso · mantê-lo na linha anterior</span>
+    <kbd>⇧ clique</kbd><span>Escolher trecho: clique num compasso e ⇧+clique em outro (ou ⇧← ⇧→)</span>
+    <kbd>P</kbd><span>Tocar a partir da nota selecionada</span>
+    <kbd>Esc</kbd><span>Parar / limpar seleção</span>
+    <kbd>← →</kbd><span>Nota anterior / próxima (⌥← ⌥→: compasso)</span>
+    <kbd>↑ ↓</kbd><span>Subir / descer a nota (⇧: oitava · ⌥: trocar de pauta)</span>
+    <kbd>A–G</kbd><span>Digitar nota (⇧+letra: adicionar ao acorde)</span>
+    <kbd>1–7</kbd><span>Duração: semibreve, mínima, semínima, colcheia, semicolcheia, fusa, semifusa</span>
+    <kbd>.</kbd><span>Ponto de aumento</span>
+    <kbd>+ − 0</kbd><span>Sustenido / bemol / bequadro</span>
+    <kbd>R</kbd><span>Transformar em pausa</span>
+    <kbd>T</kbd><span>Ligadura de prolongamento</span>
+    <kbd>S</kbd><span>Ligadura de expressão (⇧→ estende a seleção)</span>
+    <kbd>&lt;  &gt;</kbd><span>Crescendo / diminuendo</span>
+    <kbd>X</kbd><span>Tercina</span>
+    <kbd>Enter</kbd><span>Inserir novo valor depois</span>
+    <kbd>Delete</kbd><span>Apagar nota (⇧: remover e puxar)</span>
+    <kbd>K</kbd><span>Cifra neste tempo</span>
+    <kbd>⌘Enter</kbd><span>Inserir compasso · <kbd>⌘⌫</kbd> remover</span>
+    <kbd>⌘C ⌘V</kbd><span>Copiar / colar compasso</span>
+    <kbd>⌘Z ⇧⌘Z</kbd><span>Desfazer / refazer</span>
+    <kbd>⌘O ⌘S ⌘E ⌘P</kbd><span>Abrir · Salvar · Exportar · PDF</span>
+    <kbd>⌘+ ⌘−</kbd><span>Zoom</span>
+  </div></dialog>
+<script src="app.js" type="module"></script>
+</body>
+</html>
